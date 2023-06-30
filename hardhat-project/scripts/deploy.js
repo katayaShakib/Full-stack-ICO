@@ -1,29 +1,35 @@
 const hre = require("hardhat");
-require("dotenv").config({ path: ".env" });
-const { CRYPTO_DEVS_NFT_CONTRACT_ADDRESS } = require("../constants");
+
+async function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 async function main() {
-  // Address of the Crypto Devs NFT contract that you deployed in the previous module
-  const cryptoDevsNFTContract = CRYPTO_DEVS_NFT_CONTRACT_ADDRESS;
+  const cryptoDevsNFTContract = "0x96B091A0c0235846Daac59301bC16A6f7e43C9bf";
 
-  /*
-    DeployContract in ethers.js is an abstraction used to deploy new smart contracts,
-    so cryptoDevsTokenContract here is a factory for instances of our CryptoDevToken contract.
-    */
- // here we deploy the contract
-const cryptoDevsTokenContract = await hre.ethers.deployContract(
-  "CryptoDevToken",
-  [cryptoDevsNFTContract]
-);
+  // Deploy the cryptoDevsToken Contract
+  const cryptoDevsTokenContract = await hre.ethers.deployContract(
+    "CryptoDevToken",
+    [cryptoDevsNFTContract]
+  );
 
-// wait for the contract to deploy
-await cryptoDevsTokenContract.waitForDeployment();
+  // wait for the contract to deploy
+  await cryptoDevsTokenContract.waitForDeployment();
 
-// print the address of the deployed contract
-console.log(
-  "Crypto Devs Token Contract Address:",
-  cryptoDevsTokenContract.target
-);
+  // print the address of the deployed contract
+  console.log(
+    "Crypto Devs Token Contract Address:",
+    cryptoDevsTokenContract.target
+  );
+
+  // Sleep for 30 seconds while Etherscan indexes the new contract deployment
+  await sleep(30 * 1000); // 30s = 30 * 1000 milliseconds
+
+  // Verify the contract on etherscan
+  await hre.run("verify:verify", {
+    address: cryptoDevsTokenContract.target,
+    constructorArguments: ["0x96B091A0c0235846Daac59301bC16A6f7e43C9bf"],
+  });
 }
 
 // Call the main function and catch if there is any error
