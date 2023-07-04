@@ -7,7 +7,7 @@ import {
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import Head from "next/head";
 import { useEffect, useState } from "react";
-import { formatEther } from "viem/utils";
+import { formatEther, parseEther } from "viem/utils";
 import { useAccount, useBalance, useContractRead } from "wagmi";
 import { readContract, waitForTransaction, writeContract } from "wagmi/actions";
 import styles from "../styles/Home.module.css";
@@ -32,12 +32,8 @@ export default function Home() {
   // based on the Crypto Dev NFT's held by the user for which they havent claimed the tokens
   const [tokensToBeClaimed, setTokensToBeClaimed] = useState(0);
 
-  // balanceOfCryptoDevTokens keeps track of number of Crypto Dev tokens owned by an address
-  const [balanceOfCryptoDevTokens, setBalanceOfCryptoDevTokens] = useState(0);
   // amount of the tokens that the user wants to mint
   const [tokenAmount, setTokenAmount] = useState(0);
-  // tokensMinted is the total number of tokens that have been minted till now out of 10000(max total supply)
-  const [tokensMinted, setTokensMinted] = useState(0);
 
   // Fetch the owner of the DAO
   const owner = useContractRead({
@@ -46,6 +42,17 @@ export default function Home() {
     functionName: "owner",
   });
 
+  // Fetch
+  const tokenTotalSupply = useContractRead({
+    abi: TOKEN_CONTRACT_ABI,
+    address: TOKEN_CONTRACT_ADDRESS,
+    functionName: "totalSupply",
+  });
+
+  /*   const CryptoDevTokenBalance = useBalance({
+    address: TOKEN_CONTRACT_ADDRESS,
+  }); */
+
   const nftBalanceOfUser = useContractRead({
     abi: NFT_CONTRACT_ABI,
     address: NFT_CONTRACT_ADDRESS,
@@ -53,12 +60,19 @@ export default function Home() {
     args: [address],
   });
 
-  // Function to fetch a token ...
-  async function fetchtokenIdOfOwnerByIndex(i) {
+  const tokenBalanceOfUser = useContractRead({
+    abi: TOKEN_CONTRACT_ABI,
+    address: TOKEN_CONTRACT_ADDRESS,
+    functionName: "balanceOf",
+    args: [address],
+  });
+
+  // Function to fetch a token id of owner by index
+  async function fetchTokenIdOfOwnerByIndex(i) {
     try {
       const tokenId = await readContract({
-        address: CryptoDevsDAOAddress,
-        abi: CryptoDevsDAOABI,
+        address: NFT_CONTRACT_ADDRESS,
+        abi: NFT_CONTRACT_ABI,
         functionName: "tokenOfOwnerByIndex",
         args: [address, i],
       });
@@ -70,34 +84,73 @@ export default function Home() {
     }
   }
 
-  async function fetchtAllTokenIds() {
+  // Function to check wether a tokenId have been claimed
+  async function isTokenClaimed(tokenId) {
     try {
-      const tokenId = await readContract({
-        address: CryptoDevsDAOAddress,
-        abi: CryptoDevsDAOABI,
-        functionName: "tokenOfOwnerByIndex",
-        args: [address, i],
+      const cliamed = await readContract({
+        address: TOKEN_CONTRACT_ADDRESS,
+        abi: TOKEN_CONTRACT_ABI,
+        functionName: "tokenIdsClaimed",
+        args: [tokenId],
       });
 
-      return tokenId;
+      return cliamed;
     } catch (error) {
       console.error(error);
       window.alert(error);
     }
   }
 
-  /**
-   * getTokensToBeClaimed: checks the balance of tokens that can be claimed by the user
-   */
-  // Fetch the CryptoDevs NFT balance of the user
-  async function getTokensToBeClaimed() {
-    nftBalanceOfUser === 0
-      ? setTokensToBeClaimed(0)
-      : fetchtokenIdOfOwnerByIndex();
+  // Function to fetch all tokens to be claimed of owner
+  async function fetchAllTokensToBeClaimed() {
+    try {
+      if (nftBalanceOfUser === 0) {
+        setTokensToBeClaimed(0);
+      } else {
+        let tokensToBeClaimed = 0;
+
+        for (let i = 0; i < nftBalanceOfUser.data; i++) {
+          const tokenId = await fetchTokenIdOfOwnerByIndex(i);
+          const claimed = await isTokenClaimed(tokenId);
+          if (!claimed) {
+            tokensToBeClaimed++;
+          }
+        }
+
+        setTokensToBeClaimed(tokensToBeClaimed);
+      }
+    } catch (error) {
+      console.error(error);
+      window.alert(error);
+    }
+  }
+
+  // Function to mint `amount` number of tokens to a given address
+  async function mintCryptoDevToken(amount) {
+    setLoading(true);
+
+    try {
+      const value = 0.001 * amount;
+      const tx = await writeContract({
+        address: TOKEN_CONTRACT_ADDRESS,
+        abi: TOKEN_CONTRACT_ABI,
+        functionName: "mint",
+        args: [amount],
+        value: parseEther(value.toString()),
+      });
+
+      await waitForTransaction(tx);
+    } catch (error) {
+      console.error(error);
+      window.alert(error);
+    }
+    setLoading(false);
+    window.alert("Successfully minted Crypto Dev Tokens");
   }
 
   useEffect(() => {
     setIsMounted(true);
+    fetchAllTokensToBeClaimed();
   }, []);
 
   if (!isMounted) return null;
@@ -119,9 +172,48 @@ export default function Home() {
 
       <div className={styles.main}>
         <div className={styles.flex}>
-          <div>owner: {owner && owner.data ? owner.data.toString() : ""}</div>
+          <h1 className={styles.title}>Welcome to Crypto Devs ICO!</h1>
+          <div className={styles.description}>
+            You can claim or mint Crypto Dev tokens here
+          </div>
+          <div>Owner: {owner && owner.data ? owner.data.toString() : ""}</div>
+          <div>
+            Overall{" "}
+            {tokenTotalSupply && tokenTotalSupply.data
+              ? formatEther(tokenTotalSupply.data).toString()
+              : ""}{" "}
+            /10000 have been minted!!!
+          </div>
           <div>Address of user: {address ? address : ""}</div>
-          <div>NFT balance of user: {nftBalanceOfUser && nftBalanceOfUser.data ? nftBalanceOfUser.data.toString() : ""}</div>
+          <div>
+            You have minted{" "}
+            {tokenBalanceOfUser && tokenBalanceOfUser.data
+              ? formatEther(tokenBalanceOfUser.data).toString()
+              : ""}{" "}
+            Crypto Dev Tokens
+          </div>
+          <div>
+            NFT balance of user:{" "}
+            {nftBalanceOfUser && nftBalanceOfUser.data
+              ? nftBalanceOfUser.data.toString()
+              : ""}
+          </div>
+          <div>Token to be claimed of user: {tokensToBeClaimed * 10}</div>
+          <div>
+            <input
+              type="number"
+              placeholder="Amount of Tokens"
+              onChange={(e) => setTokenAmount(e.target.value)}
+              className={styles.input}
+            />
+          </div>
+          <button
+            className={styles.button}
+            disabled={!(tokenAmount > 0)}
+            onClick={() => mintCryptoDevToken(tokenAmount)}
+          >
+            Mint Tokens
+          </button>
         </div>
       </div>
     </div>
