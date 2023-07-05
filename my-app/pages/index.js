@@ -148,6 +148,27 @@ export default function Home() {
     window.alert("Successfully minted Crypto Dev Tokens");
   }
 
+  // Function for NFT holders to claim their free tokens
+  async function claimCryptoDevToken(amount) {
+    setLoading(true);
+
+    try {
+      const tx = await writeContract({
+        address: TOKEN_CONTRACT_ADDRESS,
+        abi: TOKEN_CONTRACT_ABI,
+        functionName: "claim",
+        args: [],
+      });
+
+      await waitForTransaction(tx);
+    } catch (error) {
+      console.error(error);
+      window.alert(error);
+    }
+    setLoading(false);
+    window.alert("Successfully claimed Crypto Dev Tokens");
+  }
+
   useEffect(() => {
     setIsMounted(true);
     fetchAllTokensToBeClaimed();
@@ -213,6 +234,13 @@ export default function Home() {
             onClick={() => mintCryptoDevToken(tokenAmount)}
           >
             Mint Tokens
+          </button> {" "}
+          <button
+            className={styles.button}
+            disabled={!(tokensToBeClaimed > 0)}
+            onClick={() => claimCryptoDevToken()}
+          >
+            Claim Tokens
           </button>
         </div>
       </div>
