@@ -49,9 +49,9 @@ export default function Home() {
     functionName: "totalSupply",
   });
 
-  /*   const CryptoDevTokenBalance = useBalance({
+  const CryptoDevTokenBalance = useBalance({
     address: TOKEN_CONTRACT_ADDRESS,
-  }); */
+  });
 
   const nftBalanceOfUser = useContractRead({
     abi: NFT_CONTRACT_ABI,
@@ -169,6 +169,25 @@ export default function Home() {
     window.alert("Successfully claimed Crypto Dev Tokens");
   }
 
+  // Function to withdraw ether from Crypto Dev Token contract
+  async function withdrawEther() {
+    setLoading(true);
+    try {
+      const tx = await writeContract({
+        address: TOKEN_CONTRACT_ADDRESS,
+        abi: TOKEN_CONTRACT_ABI,
+        functionName: "withdraw",
+        args: [],
+      });
+
+      await waitForTransaction(tx);
+    } catch (error) {
+      console.error(error);
+      window.alert(error);
+    }
+    setLoading(false);
+  }
+
   useEffect(() => {
     setIsMounted(true);
     fetchAllTokensToBeClaimed();
@@ -234,13 +253,20 @@ export default function Home() {
             onClick={() => mintCryptoDevToken(tokenAmount)}
           >
             Mint Tokens
-          </button> {" "}
+          </button>{" "}
           <button
             className={styles.button}
             disabled={!(tokensToBeClaimed > 0)}
             onClick={() => claimCryptoDevToken()}
           >
             Claim Tokens
+          </button>{" "}
+          <button
+            className={styles.button}
+            disabled={address != owner.data || !CryptoDevTokenBalance || !(formatEther(CryptoDevTokenBalance.data.value) > 0)}
+            onClick={() => withdrawEther()}
+          >
+            Withdraw Ether
           </button>
         </div>
       </div>
