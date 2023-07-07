@@ -26,7 +26,7 @@ export default function Home() {
   const [isMounted, setIsMounted] = useState(false);
 
   // State variable to show loading state when waiting for a transaction to go through
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState("");
 
   // tokensToBeClaimed keeps track of the number of tokens that can be claimed
   // based on the Crypto Dev NFT's held by the user for which they havent claimed the tokens
@@ -42,17 +42,19 @@ export default function Home() {
     functionName: "owner",
   });
 
-  // Fetch
+  // Fetch the balance of crypto devs token contract
+  const CryptoDevTokenBalance = useBalance({
+    address: TOKEN_CONTRACT_ADDRESS,
+  });
+
+  // Fetch the number of minted tokens
   const tokenTotalSupply = useContractRead({
     abi: TOKEN_CONTRACT_ABI,
     address: TOKEN_CONTRACT_ADDRESS,
     functionName: "totalSupply",
   });
 
-  const CryptoDevTokenBalance = useBalance({
-    address: TOKEN_CONTRACT_ADDRESS,
-  });
-
+  // Fetch the NFT balance of the user
   const nftBalanceOfUser = useContractRead({
     abi: NFT_CONTRACT_ABI,
     address: NFT_CONTRACT_ADDRESS,
@@ -60,6 +62,7 @@ export default function Home() {
     args: [address],
   });
 
+  // Fetch the token balance of the user
   const tokenBalanceOfUser = useContractRead({
     abi: TOKEN_CONTRACT_ABI,
     address: TOKEN_CONTRACT_ADDRESS,
@@ -127,7 +130,7 @@ export default function Home() {
 
   // Function to mint `amount` number of tokens to a given address
   async function mintCryptoDevToken(amount) {
-    setLoading(true);
+    setLoading("mint");
 
     try {
       const value = 0.001 * amount;
@@ -144,13 +147,12 @@ export default function Home() {
       console.error(error);
       window.alert(error);
     }
-    setLoading(false);
-    window.alert("Successfully minted Crypto Dev Tokens");
+    setLoading("");
   }
 
   // Function for NFT holders to claim their free tokens
   async function claimCryptoDevToken(amount) {
-    setLoading(true);
+    setLoading("claim");
 
     try {
       const tx = await writeContract({
@@ -165,13 +167,12 @@ export default function Home() {
       console.error(error);
       window.alert(error);
     }
-    setLoading(false);
-    window.alert("Successfully claimed Crypto Dev Tokens");
+    setLoading("");
   }
 
-  // Function to withdraw ether from Crypto Dev Token contract
+  // Function to withdraw all Ether from Crypto Dev Token contract
   async function withdrawEther() {
-    setLoading(true);
+    setLoading("withdraw");
     try {
       const tx = await writeContract({
         address: TOKEN_CONTRACT_ADDRESS,
@@ -185,12 +186,15 @@ export default function Home() {
       console.error(error);
       window.alert(error);
     }
-    setLoading(false);
+    setLoading("");
   }
 
   useEffect(() => {
-    setIsMounted(true);
     fetchAllTokensToBeClaimed();
+  }, [address]);
+
+  useEffect(() => {
+    setIsMounted(true);
   }, []);
 
   if (!isMounted) return null;
@@ -211,63 +215,103 @@ export default function Home() {
       </Head>
 
       <div className={styles.main}>
-        <div className={styles.flex}>
+        <div>
           <h1 className={styles.title}>Welcome to Crypto Devs ICO!</h1>
-          <div className={styles.description}>
+          <h2 className={styles.description}>
             You can claim or mint Crypto Dev tokens here
-          </div>
-          <div>Owner: {owner && owner.data ? owner.data.toString() : ""}</div>
+          </h2>
           <div>
             Overall{" "}
             {tokenTotalSupply && tokenTotalSupply.data
               ? formatEther(tokenTotalSupply.data).toString()
-              : ""}{" "}
+              : ""}
             /10000 have been minted!!!
           </div>
-          <div>Address of user: {address ? address : ""}</div>
+          <div className={styles.overflow}>
+            Address of user {address ? address : ""}
+          </div>
           <div>
             You have minted{" "}
             {tokenBalanceOfUser && tokenBalanceOfUser.data
-              ? formatEther(tokenBalanceOfUser.data).toString()
-              : ""}{" "}
+              ? formatEther(tokenBalanceOfUser.data)
+              : "0"}{" "}
             Crypto Dev Tokens
           </div>
           <div>
-            NFT balance of user:{" "}
+            NFT balance of user{" "}
             {nftBalanceOfUser && nftBalanceOfUser.data
               ? nftBalanceOfUser.data.toString()
-              : ""}
+              : "0"}
           </div>
-          <div>Token to be claimed of user: {tokensToBeClaimed * 10}</div>
+          <div>
+            Tokens to be claimed of user {tokensToBeClaimed * 10}{" "}
+            {tokensToBeClaimed && tokensToBeClaimed > 0 ? (
+              <div className={styles.inlineBlock}>
+                {loading === "claim" ? (
+                  <button className={styles.button}>Loading...</button>
+                ) : (
+                  <button
+                    className={styles.button}
+                    disabled={!(tokensToBeClaimed > 0)}
+                    onClick={() => claimCryptoDevToken()}
+                  >
+                    Claim {tokensToBeClaimed * 10} Tokens
+                  </button>
+                )}
+              </div>
+            ) : (
+              ""
+            )}
+          </div>
           <div>
             <input
               type="number"
               placeholder="Amount of Tokens"
               onChange={(e) => setTokenAmount(e.target.value)}
               className={styles.input}
-            />
+            />{" "}
+            {loading === "mint" ? (
+              <button className={styles.button}>Loading...</button>
+            ) : (
+              <button
+                className={styles.button}
+                disabled={!(tokenAmount > 0)}
+                onClick={() => mintCryptoDevToken(tokenAmount)}
+              >
+                Mint Tokens
+              </button>
+            )}
           </div>
-          <button
-            className={styles.button}
-            disabled={!(tokenAmount > 0)}
-            onClick={() => mintCryptoDevToken(tokenAmount)}
-          >
-            Mint Tokens
-          </button>{" "}
-          <button
-            className={styles.button}
-            disabled={!(tokensToBeClaimed > 0)}
-            onClick={() => claimCryptoDevToken()}
-          >
-            Claim Tokens
-          </button>{" "}
-          <button
-            className={styles.button}
-            disabled={address != owner.data || !CryptoDevTokenBalance || !(formatEther(CryptoDevTokenBalance.data.value) > 0)}
-            onClick={() => withdrawEther()}
-          >
-            Withdraw Ether
-          </button>
+
+          {/* Display the contract's balance and withdraw button if connected wallet is the owner */}
+          {address && address.toLowerCase() === owner.data.toLowerCase() ? (
+            <div>
+              {loading === "withdraw" ? (
+                <button className={styles.button}>Loading...</button>
+              ) : (
+                <div>
+                  Crypto Devs Token contract balance{" "}
+                  {CryptoDevTokenBalance && CryptoDevTokenBalance.data
+                    ? formatEther(CryptoDevTokenBalance.data.value)
+                    : "0"}
+                  {" ETH "}
+                  <button
+                    className={styles.button}
+                    disabled={
+                      address.toLowerCase() != owner.data.toLowerCase() ||
+                      !CryptoDevTokenBalance ||
+                      !(formatEther(CryptoDevTokenBalance.data.value) > 0)
+                    }
+                    onClick={() => withdrawEther()}
+                  >
+                    Withdraw All Ether
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            ""
+          )}
         </div>
       </div>
     </div>
