@@ -228,7 +228,7 @@ export default function Home() {
             /10000 have been minted!!!
           </div>
           <div className={styles.overflow}>
-            Address of user {address ? address : ""}
+            Address of user: {address ? address : ""}
           </div>
           <div>
             You have minted{" "}
@@ -238,27 +238,25 @@ export default function Home() {
             Crypto Dev Tokens
           </div>
           <div>
-            NFT balance of user{" "}
+            NFT balance of user:{" "}
             {nftBalanceOfUser && nftBalanceOfUser.data
               ? nftBalanceOfUser.data.toString()
               : "0"}
           </div>
           <div>
-            Tokens to be claimed of user {tokensToBeClaimed * 10}{" "}
+            Tokens to be claimed of user: {tokensToBeClaimed * 10}{" "}
             {tokensToBeClaimed && tokensToBeClaimed > 0 ? (
-              <div className={styles.inlineBlock}>
-                {loading === "claim" ? (
-                  <button className={styles.button}>Loading...</button>
-                ) : (
-                  <button
-                    className={styles.button}
-                    disabled={!(tokensToBeClaimed > 0)}
-                    onClick={() => claimCryptoDevToken()}
-                  >
-                    Claim {tokensToBeClaimed * 10} Tokens
-                  </button>
-                )}
-              </div>
+              loading === "claim" ? (
+                <button className={styles.button}>Loading...</button>
+              ) : (
+                <button
+                  className={styles.button}
+                  disabled={!(tokensToBeClaimed > 0)}
+                  onClick={() => claimCryptoDevToken()}
+                >
+                  Claim {tokensToBeClaimed * 10} Tokens
+                </button>
+              )
             ) : (
               ""
             )}
@@ -286,27 +284,25 @@ export default function Home() {
           {/* Display the contract's balance and withdraw button if connected wallet is the owner */}
           {address && address.toLowerCase() === owner.data.toLowerCase() ? (
             <div>
+              Crypto Devs Token contract balance{" "}
+              {CryptoDevTokenBalance && CryptoDevTokenBalance.data
+                ? formatEther(CryptoDevTokenBalance.data.value)
+                : "0"}
+              {" ETH "}
               {loading === "withdraw" ? (
                 <button className={styles.button}>Loading...</button>
               ) : (
-                <div>
-                  Crypto Devs Token contract balance{" "}
-                  {CryptoDevTokenBalance && CryptoDevTokenBalance.data
-                    ? formatEther(CryptoDevTokenBalance.data.value)
-                    : "0"}
-                  {" ETH "}
-                  <button
-                    className={styles.button}
-                    disabled={
-                      address.toLowerCase() != owner.data.toLowerCase() ||
-                      !CryptoDevTokenBalance ||
-                      !(formatEther(CryptoDevTokenBalance.data.value) > 0)
-                    }
-                    onClick={() => withdrawEther()}
-                  >
-                    Withdraw All Ether
-                  </button>
-                </div>
+                <button
+                  className={styles.button}
+                  disabled={
+                    address.toLowerCase() != owner.data.toLowerCase() ||
+                    !CryptoDevTokenBalance ||
+                    !(formatEther(CryptoDevTokenBalance.data.value) > 0)
+                  }
+                  onClick={() => withdrawEther()}
+                >
+                  Withdraw All Ether
+                </button>
               )}
             </div>
           ) : (
