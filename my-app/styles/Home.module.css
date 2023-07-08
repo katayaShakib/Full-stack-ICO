@@ -1,11 +1,9 @@
 .main {
-  min-height: 90vh;
   display: flex;
   justify-content: center;
   align-items: center;
   font-family: "Courier New", Courier, monospace;
-  padding: 2rem;
-  background-color: rgb(18, 24, 42);
+  padding: 6rem 2rem 2rem;
   color: rgb(255, 255, 255);
 }
 
@@ -15,10 +13,6 @@
 
 .overflow {
   overflow: auto;
-}
-
-.inlineBlock {
-  display: inline-block;
 }
 
 .input {
@@ -48,9 +42,14 @@
   font-size: 15px;
   padding: 5px;
   cursor: pointer;
+  margin-block: 1rem;
 }
 
 @media (max-width: 768px) {
+  .main {
+    padding: 2rem;
+  }
+
   .main div {
     width: 100%;
   }
