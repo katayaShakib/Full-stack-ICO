@@ -1,7 +1,3 @@
-```diff
-- (Deprecated for now, and will be corrected soon.)
-```
-
 # ICO Initial Coin Offering 
 
 Launched a token and called it Crypto Dev Token (CD).
