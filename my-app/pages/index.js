@@ -201,8 +201,21 @@ export default function Home() {
 
   if (!isConnected)
     return (
-      <div>
-        <ConnectButton />
+      <div className={inter.className}>
+        <Head>
+          <title>CryptoDevs DAO</title>
+          <meta name="description" content="CryptoDevs DAO" />
+          <link rel="icon" href="/favicon.ico" />
+        </Head>
+        <div className={styles.connect}>
+          <div className={styles.connectBtn}>
+            <ConnectButton />
+          </div>
+          <h1 className={styles.title}>Welcome to Crypto Devs ICO!</h1>
+          <h2 className={styles.description}>
+            You can claim or mint Crypto Dev tokens here
+          </h2>
+        </div>
       </div>
     );
 

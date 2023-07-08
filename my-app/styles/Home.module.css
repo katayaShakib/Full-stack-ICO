@@ -45,6 +45,18 @@
   margin-block: 1rem;
 }
 
+.connect {
+  font-family: "Courier New", Courier, monospace;
+  color: rgb(255, 255, 255);
+  padding: 1rem 2rem 2rem 7rem;
+}
+
+.connectBtn {
+  width: fit-content;
+  margin-inline-start: auto;
+  margin-block-end: 11rem;
+}
+
 @media (max-width: 768px) {
   .main {
     padding: 2rem;
@@ -54,11 +66,7 @@
     width: 100%;
   }
 
-  .title {
-    text-align: center;
-  }
-
-  .description {
-    text-align: center;
+  .connect {
+    padding: 1rem 2rem 2rem;
   }
 }
