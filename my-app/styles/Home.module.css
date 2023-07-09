@@ -34,15 +34,17 @@
   font-size: 1.2rem;
 }
 
+
 .button {
-  border-radius: 4px;
-  background-color: #12e89a;
-  border: none;
-  color: #ffffff;
-  font-size: 15px;
-  padding: 5px;
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius);
+  border: 1px solid rgba(var(--card-border-rgb), 0.15);
+  transition: background 200ms, border 200ms;
+  font-size: 0.9rem;
+  font-weight: 600;
   cursor: pointer;
-  margin-block: 1rem;
+  background-color: #12e89a;
+  color: #ffffff;
 }
 
 .connect {
@@ -55,6 +57,14 @@
   width: fit-content;
   margin-inline-start: auto;
   margin-block-end: 11rem;
+}
+
+/* Enable hover only on non-touch devices */
+@media (hover: hover) and (pointer: fine) {
+  .button:hover {
+    background: rgba(18, 232, 154, 0.5);
+    border: 1px solid rgba(var(--card-border-rgb), 0.25);
+  }
 }
 
 @media (max-width: 768px) {
