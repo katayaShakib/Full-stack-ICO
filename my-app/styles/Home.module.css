@@ -18,7 +18,7 @@
 .input {
   width: 200px;
   height: 100%;
-  padding: 1%;
+  padding: 0.5rem 1rem;
   box-shadow: 0 0 15px 4px rgba(0, 0, 0, 0.06);
   border-radius: 10px;
 }
@@ -45,6 +45,7 @@
   cursor: pointer;
   background-color: #12e89a;
   color: #ffffff;
+  margin-block: 1rem;
 }
 
 .connect {
