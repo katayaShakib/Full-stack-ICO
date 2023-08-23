@@ -10,7 +10,7 @@ const { chains, publicClient } = configureChains([sepolia], [publicProvider()]);
 
 const { connectors } = getDefaultWallets({
   appName: "CryptoDevs DAO",
-  projectId: "75e10065c6290149fc5f35ec7de23f34",
+  projectId: "144ddc9ad47f68ccf4b94a231245f654",
   chains,
 });
 
