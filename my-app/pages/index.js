@@ -295,7 +295,9 @@ export default function Home() {
           </div>
 
           {/* Display the contract's balance and withdraw button if connected wallet is the owner */}
-          {address && address.toLowerCase() === owner.data.toLowerCase() ? (
+          {address &&
+          owner &&
+          address.toLowerCase() === owner.data.toLowerCase() ? (
             <div>
               Crypto Devs Token contract balance{" "}
               {CryptoDevTokenBalance && CryptoDevTokenBalance.data
