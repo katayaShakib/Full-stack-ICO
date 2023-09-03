@@ -8,7 +8,7 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import Head from "next/head";
 import { useEffect, useState } from "react";
 import { formatEther, parseEther } from "viem/utils";
-import { useAccount, useBalance, useContractRead } from "wagmi";
+import { useAccount, useBalance, useContractRead, useEnsName } from "wagmi";
 import { readContract, waitForTransaction, writeContract } from "wagmi/actions";
 import styles from "../styles/Home.module.css";
 import { Inter } from "next/font/google";
@@ -34,6 +34,11 @@ export default function Home() {
 
   // amount of the tokens that the user wants to mint
   const [tokenAmount, setTokenAmount] = useState(0);
+
+  // Lookup the ENS related to the given address
+  const EnsName = useEnsName({
+    address: address,
+  });
 
   // Fetch the owner of the DAO
   const owner = useContractRead({
@@ -244,6 +249,14 @@ export default function Home() {
             Address of user: {address ? address : ""}
           </div>
           <div>
+            ENS:{" "}
+            {!EnsName.isError
+              ? EnsName.isLoading
+                ? "Fetching name…"
+                : EnsName.data
+              : "Error fetching name"}
+          </div>
+          <div>
             You have minted{" "}
             {tokenBalanceOfUser && tokenBalanceOfUser.data
               ? formatEther(tokenBalanceOfUser.data)
@@ -297,6 +310,7 @@ export default function Home() {
           {/* Display the contract's balance and withdraw button if connected wallet is the owner */}
           {address &&
           owner &&
+          owner.data &&
           address.toLowerCase() === owner.data.toLowerCase() ? (
             <div>
               Crypto Devs Token contract balance{" "}
