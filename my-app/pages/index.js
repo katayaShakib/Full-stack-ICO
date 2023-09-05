@@ -36,6 +36,7 @@ export default function Home() {
   const [tokenAmount, setTokenAmount] = useState(0);
 
   // Lookup the ENS related to the given address
+  // doesn't work on Sepolia, but tried it on Goerli
   const EnsName = useEnsName({
     address: address,
   });
